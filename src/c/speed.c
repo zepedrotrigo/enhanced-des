@@ -23,16 +23,23 @@ double measure_time(void (*func)(uint8_t *, uint8_t [SBOX_COUNT][SBOX_SIZE], uin
     generate_random_key(key, key_size);
     generate_sboxes(sboxes, (const char *)key);
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    for (int i = 0; i < NUM_ITERATIONS; i++) {
-        func(output, sboxes, input, BUFFER_SIZE);
-    }
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    double min_time = __DBL_MAX__;
 
-    double time = (end.tv_sec - start.tv_sec) * 1e9 + (end.tv_nsec - start.tv_nsec);
-    printf("%s time: %.3f ns\n", description, time / NUM_ITERATIONS);
-    return time;
+    for (int i = 0; i < NUM_ITERATIONS; i++) {
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        func(output, sboxes, input, BUFFER_SIZE);
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        double time = (end.tv_sec - start.tv_sec) * 1e9 + (end.tv_nsec - start.tv_nsec);
+        if (time < min_time) {
+            min_time = time;
+        }
+    }
+
+    printf("%s time: %.3f ns\n", description, min_time);
+    return min_time;
 }
+
 
 int main() {
     printf("DES:\n");
