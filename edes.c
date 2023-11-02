@@ -10,25 +10,29 @@
 #define SBOX_SIZE 256
 
 
+typedef struct {
+    unsigned long state;
+} LCG;
+
+unsigned int lcg_next(LCG *lcg) {
+    lcg->state = (lcg->state * 1103515245 + 12345) & 0x7FFFFFFF;
+    return lcg->state;
+}
+
+
 void generate_sboxes(uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], const char *key) {
     // Seed RNG with key
-    unsigned int seed = 0;
+    unsigned long long seed = 0;
     for(int i = 0; i < KEY_SIZE; i++)
-        seed = (seed << 8) | key[i];
-    srand(seed);
+        seed = ((seed << 5) | (seed >> (64-5))) ^ key[i];
+
+    LCG prng = {seed};
 
     // Generate 16 S-Boxes
     for(int i = 0; i < SBOX_COUNT; i++) {
         // Generate a permutation of 0 to 255
         for(int j = 0; j < SBOX_SIZE; j++)
-            sboxes[i][j] = j;
-
-        for(int j = SBOX_SIZE - 1; j > 0; j--) {
-            int swap_idx = rand() % (j + 1);
-            uint8_t temp = sboxes[i][j];
-            sboxes[i][j] = sboxes[i][swap_idx];
-            sboxes[i][swap_idx] = temp;
-        }
+            sboxes[i][j] = lcg_next(&prng) % 256;
 
         // Ensure 16 zeros across all S-Boxes
         int zero_count = 0;
