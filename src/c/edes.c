@@ -63,12 +63,9 @@ void generate_sboxes(uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], const char *key) {
 void feistel_function(uint8_t *out, uint8_t sbox[SBOX_SIZE], uint8_t *input_block) {
     int index = input_block[3];
     out[0] = sbox[index];
-    index = (index + input_block[2]) % SBOX_SIZE;
-    out[1] = sbox[index];
-    index = (index + input_block[1]) % SBOX_SIZE;
-    out[2] = sbox[index];
-    index = (index + input_block[0]) % SBOX_SIZE;
-    out[3] = sbox[index];
+    out[1] = sbox[(index += input_block[2]) % SBOX_SIZE];
+    out[2] = sbox[(index += input_block[1]) % SBOX_SIZE];
+    out[3] = sbox[(index + input_block[0]) % SBOX_SIZE];
 }
 
 
