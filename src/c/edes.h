@@ -2,6 +2,7 @@
 #define EDES_H
 
 #include <stdint.h>
+#include <openssl/des.h>
 
 #define SBOX_COUNT 16
 #define SBOX_SIZE 256
@@ -12,7 +13,7 @@ void edes_encrypt(uint8_t *ciphertext, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], ui
 int edes_decrypt(uint8_t *plaintext, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], uint8_t *ciphertext, int ciphertext_len);
 
 // DES functions for comparison
-void encrypt_des(uint8_t *ciphertext, const char *key, uint8_t *plaintext, int plaintext_len);
-void decrypt_des(uint8_t *plaintext, const char *key, uint8_t *ciphertext, int ciphertext_len);
+void encrypt_des(uint8_t *ciphertext, DES_key_schedule *schedule, uint8_t *plaintext, int plaintext_len);
+void decrypt_des(uint8_t *plaintext, DES_key_schedule *schedule, uint8_t *ciphertext, int ciphertext_len);
 
 #endif // EDES_H

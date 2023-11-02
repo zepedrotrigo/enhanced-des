@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <openssl/des.h>
 
 #define BLOCK_SIZE 8
 #define KEY_SIZE 32
@@ -152,20 +151,16 @@ int edes_decrypt(uint8_t *plaintext, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], uint
 
 
 // DES functions for comparison
-void encrypt_des(uint8_t *ciphertext, const char *key, uint8_t *plaintext, int plaintext_len) {
-    DES_key_schedule schedule;
-    DES_set_key_unchecked((const_DES_cblock *)key, &schedule);
+void encrypt_des(uint8_t *ciphertext, DES_key_schedule *schedule, uint8_t *plaintext, int plaintext_len) {
     DES_cblock padded_data[plaintext_len + 8];
     int padded_len = (plaintext_len + 7) / 8 * 8;
     pkcs7_pad(padded_data, plaintext, plaintext_len, 8);
-    DES_ecb_encrypt((const_DES_cblock *)padded_data, (DES_cblock *)ciphertext, &schedule, DES_ENCRYPT);
+    DES_ecb_encrypt((const_DES_cblock *)padded_data, (DES_cblock *)ciphertext, schedule, DES_ENCRYPT);
 }
 
-void decrypt_des(uint8_t *plaintext, const char *key, uint8_t *ciphertext, int ciphertext_len) {
-    DES_key_schedule schedule;
-    DES_set_key_unchecked((const_DES_cblock *)key, &schedule);
+void decrypt_des(uint8_t *plaintext, DES_key_schedule *schedule, uint8_t *ciphertext, int ciphertext_len) {
     uint8_t unpadded_data[ciphertext_len];
-    DES_ecb_encrypt((const_DES_cblock *)ciphertext, (DES_cblock *)unpadded_data, &schedule, DES_DECRYPT);
+    DES_ecb_encrypt((const_DES_cblock *)ciphertext, (DES_cblock *)unpadded_data, schedule, DES_DECRYPT);
     int plaintext_len = pkcs7_unpad(plaintext, unpadded_data, ciphertext_len);
     plaintext[plaintext_len] = '\0';
 }

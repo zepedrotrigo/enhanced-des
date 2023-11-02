@@ -30,7 +30,9 @@ int main(int argc, char *argv[]) {
     uint8_t sboxes[SBOX_COUNT][SBOX_SIZE];
 
     if (strcmp(mode, "--des") == 0) {
-        encrypt_des(ciphertext, password, (uint8_t *)plaintext, plaintext_len);
+        DES_key_schedule schedule;
+        DES_set_key_unchecked((const_DES_cblock *)password, &schedule);
+        encrypt_des(ciphertext, &schedule, (uint8_t *)plaintext, plaintext_len);
     } else {
         generate_sboxes(sboxes, password);
         edes_encrypt(ciphertext, sboxes, (uint8_t *)plaintext, plaintext_len);
