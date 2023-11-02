@@ -45,11 +45,10 @@ def feistel_function(sbox, input_block):
     
     return bytes(out)
 
-def edes_encrypt_block(key, plaintext_block):
+def edes_encrypt_block(key, plaintext_block, sboxes):
     # Ensure block is 64 bits
     assert len(plaintext_block) == 8
     
-    sboxes = generate_sboxes(key)
     L, R = plaintext_block[:4], plaintext_block[4:]
     
     # 16 rounds of Feistel Network
@@ -58,11 +57,10 @@ def edes_encrypt_block(key, plaintext_block):
     
     return R + L
 
-def edes_decrypt_block(key, ciphertext_block):
+def edes_decrypt_block(key, ciphertext_block, sboxes):
     # Ensure block is 64 bits
     assert len(ciphertext_block) == 8
     
-    sboxes = generate_sboxes(key)
     L, R = ciphertext_block[:4], ciphertext_block[4:]
     
     # 16 rounds of Feistel Network in reverse
@@ -74,21 +72,23 @@ def edes_decrypt_block(key, ciphertext_block):
 def edes_encrypt(key, plaintext):
     padded_data = pkcs7_pad(plaintext, 8)
     ciphertext = b''
-    
+    sboxes = generate_sboxes(key)
+
     # Encrypt each block using ECB mode
     for i in range(0, len(padded_data), 8):
         block = padded_data[i:i+8]
-        ciphertext += edes_encrypt_block(key, block)
+        ciphertext += edes_encrypt_block(key, block, sboxes)
     
     return ciphertext
 
 def edes_decrypt(key, ciphertext):
     plaintext = b''
+    sboxes = generate_sboxes(key)
     
     # Decrypt each block using ECB mode
     for i in range(0, len(ciphertext), 8):
         block = ciphertext[i:i+8]
-        plaintext += edes_decrypt_block(key, block)
+        plaintext += edes_decrypt_block(key, block, sboxes)
     
     return pkcs7_unpad(plaintext)
 

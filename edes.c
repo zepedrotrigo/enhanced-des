@@ -69,9 +69,7 @@ void feistel_function(uint8_t *out, uint8_t sbox[SBOX_SIZE], uint8_t *input_bloc
 }
 
 
-void edes_encrypt_block(uint8_t *ciphertext_block, const char *key, uint8_t *plaintext_block) {
-    uint8_t sboxes[SBOX_COUNT][SBOX_SIZE];
-    generate_sboxes(sboxes, key);
+void edes_encrypt_block(uint8_t *ciphertext_block, const char *key, uint8_t *plaintext_block, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE]) {
     uint8_t L[BLOCK_SIZE / 2], R[BLOCK_SIZE / 2], temp[BLOCK_SIZE / 2];
 
     // Split block into L and R
@@ -94,9 +92,7 @@ void edes_encrypt_block(uint8_t *ciphertext_block, const char *key, uint8_t *pla
 }
 
 
-void edes_decrypt_block(uint8_t *plaintext_block, const char *key, uint8_t *ciphertext_block) {
-    uint8_t sboxes[SBOX_COUNT][SBOX_SIZE];
-    generate_sboxes(sboxes, key);
+void edes_decrypt_block(uint8_t *plaintext_block, const char *key, uint8_t *ciphertext_block, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE]) {
     uint8_t L[BLOCK_SIZE / 2], R[BLOCK_SIZE / 2], temp[BLOCK_SIZE / 2];
 
     // Split block into L and R
@@ -138,18 +134,24 @@ void edes_encrypt(uint8_t *ciphertext, const char *key, uint8_t *plaintext, int 
     uint8_t padded_data[padded_len];
     pkcs7_pad(padded_data, plaintext, plaintext_len, BLOCK_SIZE);
 
+    uint8_t sboxes[SBOX_COUNT][SBOX_SIZE];
+    generate_sboxes(sboxes, key);
+
     // Encrypt each block using ECB mode
     for(int i = 0; i < padded_len; i += BLOCK_SIZE)
-        edes_encrypt_block(ciphertext + i, key, padded_data + i);
+        edes_encrypt_block(ciphertext + i, key, padded_data + i, sboxes);
 }
 
 
 int edes_decrypt(uint8_t *plaintext, const char *key, uint8_t *ciphertext, int ciphertext_len) {
     uint8_t unpadded_data[ciphertext_len];
 
+    uint8_t sboxes[SBOX_COUNT][SBOX_SIZE];
+    generate_sboxes(sboxes, key);
+
     // Decrypt each block using ECB mode
     for(int i = 0; i < ciphertext_len; i += BLOCK_SIZE)
-        edes_decrypt_block(unpadded_data + i, key, ciphertext + i);
+        edes_decrypt_block(unpadded_data + i, key, ciphertext + i, sboxes);
 
     return pkcs7_unpad(plaintext, unpadded_data, ciphertext_len);
 }
