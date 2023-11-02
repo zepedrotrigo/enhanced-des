@@ -7,14 +7,18 @@ CFLAGS = -O2 -Wall
 # Libraries
 LIBS = -lssl -lcrypto
 
+# Directories
+SRC_DIR = src/c
+BIN_DIR = bin
+
 # Targets
-all: encrypt decrypt
+all: $(BIN_DIR)/encrypt $(BIN_DIR)/decrypt
 
-encrypt: encrypt.c edes.c
-	$(CC) $(CFLAGS) -o encrypt encrypt.c edes.c $(LIBS)
+$(BIN_DIR)/encrypt: $(SRC_DIR)/encrypt.c $(SRC_DIR)/edes.c
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/encrypt $(SRC_DIR)/encrypt.c $(SRC_DIR)/edes.c $(LIBS)
 
-decrypt: decrypt.c edes.c
-	$(CC) $(CFLAGS) -o decrypt decrypt.c edes.c $(LIBS)
+$(BIN_DIR)/decrypt: $(SRC_DIR)/decrypt.c $(SRC_DIR)/edes.c
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/decrypt $(SRC_DIR)/decrypt.c $(SRC_DIR)/edes.c $(LIBS)
 
 clean:
-	rm -f encrypt decrypt
+	rm -f $(BIN_DIR)/encrypt $(BIN_DIR)/decrypt
