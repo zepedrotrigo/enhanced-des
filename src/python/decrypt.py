@@ -2,7 +2,7 @@
 import sys
 from Crypto.Cipher import DES
 from Crypto.Util.Padding import unpad
-from edes import edes_decrypt
+from edes import edes_decrypt, generate_sboxes
 
 def decrypt_des(key, ciphertext):
     cipher = DES.new(key, DES.MODE_ECB)
@@ -23,7 +23,8 @@ def main():
     if mode == "--des":
         plaintext = decrypt_des(password[:8].encode(), ciphertext)
     else:
-        plaintext = edes_decrypt(password, ciphertext)
+        sboxes = generate_sboxes(password)
+        plaintext = edes_decrypt(password, ciphertext, sboxes)
 
     print("Decrypted: ", end="", flush=True)
     sys.stdout.write(plaintext.decode())

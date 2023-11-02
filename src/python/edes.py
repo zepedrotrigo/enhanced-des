@@ -88,10 +88,9 @@ def edes_decrypt_block(key, ciphertext_block, sboxes):
     return R + L
 
 
-def edes_encrypt(key, plaintext):
+def edes_encrypt(key, plaintext, sboxes):
     padded_data = pkcs7_pad(plaintext, 8)
     ciphertext = b''
-    sboxes = generate_sboxes(key)
 
     # Encrypt each block using ECB mode
     for i in range(0, len(padded_data), 8):
@@ -101,9 +100,8 @@ def edes_encrypt(key, plaintext):
     return ciphertext
 
 
-def edes_decrypt(key, ciphertext):
+def edes_decrypt(key, ciphertext, sboxes):
     plaintext = b''
-    sboxes = generate_sboxes(key)
     
     # Decrypt each block using ECB mode
     for i in range(0, len(ciphertext), 8):
