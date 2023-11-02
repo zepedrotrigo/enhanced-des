@@ -1,9 +1,8 @@
-# decrypt_application.py
+# decrypt.py
 import sys
-import base64
 from Crypto.Cipher import DES
 from Crypto.Util.Padding import unpad
-from enhanced_des import edes_decrypt
+from edes import edes_decrypt
 
 def decrypt_des(key, ciphertext):
     cipher = DES.new(key, DES.MODE_ECB)
@@ -17,8 +16,9 @@ def main():
     password = sys.argv[1]
     mode = sys.argv[2].lower()
     print("> ", end="", flush=True)
-    b64_ciphertext = sys.stdin.readline().strip()
-    ciphertext = base64.b64decode(b64_ciphertext)
+    # Read the input as a hexadecimal string
+    hex_ciphertext = sys.stdin.readline().strip()
+    ciphertext = bytes.fromhex(hex_ciphertext)
 
     if mode == "--des":
         plaintext = decrypt_des(password[:8].encode(), ciphertext)

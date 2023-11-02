@@ -1,9 +1,8 @@
-# encrypt_application.py
+# encrypt.py
 import sys
-import base64
 from Crypto.Cipher import DES
 from Crypto.Util.Padding import pad
-from enhanced_des import edes_encrypt
+from edes import edes_encrypt
 
 def encrypt_des(key, plaintext):
     cipher = DES.new(key, DES.MODE_ECB)
@@ -24,7 +23,7 @@ def main():
     else:
         ciphertext = edes_encrypt(password, plaintext)
 
-    sys.stdout.write(base64.b64encode(ciphertext).decode())
+    sys.stdout.write(ciphertext.hex() + "\n")
 
 if __name__ == "__main__":
     main()
