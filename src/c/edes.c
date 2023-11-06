@@ -68,49 +68,36 @@ void feistel_function(uint8_t *out, uint8_t sbox[SBOX_SIZE], uint8_t *input_bloc
 }
 
 
-void edes_encrypt_block(uint8_t *ciphertext_block, uint8_t *plaintext_block, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE]) {
+void edes_process_block(uint8_t *output_block, uint8_t *input_block, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], int decrypt)
+{
     uint8_t L[BLOCK_SIZE / 2], R[BLOCK_SIZE / 2], temp[BLOCK_SIZE / 2];
 
     // Split block into L and R
-    memcpy(L, plaintext_block, BLOCK_SIZE / 2);
-    memcpy(R, plaintext_block + BLOCK_SIZE / 2, BLOCK_SIZE / 2);
-
-    // 16 rounds of Feistel Network
-    for(int i = 0; i < SBOX_COUNT; i++) {
-        feistel_function(temp, sboxes[i], R);
-        for(int j = 0; j < BLOCK_SIZE / 2; j++) {
-            temp[j] = L[j] ^ temp[j];
-        }
-        memcpy(L, R, BLOCK_SIZE / 2);
-        memcpy(R, temp, BLOCK_SIZE / 2);
+    for (int i = 0; i < BLOCK_SIZE / 2; ++i)
+    {
+        L[i] = input_block[i];
+        R[i] = input_block[i + BLOCK_SIZE / 2];
     }
 
-    // Combine R and L
-    memcpy(ciphertext_block, R, BLOCK_SIZE / 2);
-    memcpy(ciphertext_block + BLOCK_SIZE / 2, L, BLOCK_SIZE / 2);
-}
-
-
-void edes_decrypt_block(uint8_t *plaintext_block, uint8_t *ciphertext_block, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE]) {
-    uint8_t L[BLOCK_SIZE / 2], R[BLOCK_SIZE / 2], temp[BLOCK_SIZE / 2];
-
-    // Split block into L and R
-    memcpy(L, ciphertext_block, BLOCK_SIZE / 2);
-    memcpy(R, ciphertext_block + BLOCK_SIZE / 2, BLOCK_SIZE / 2);
-
-    // 16 rounds of Feistel Network in reverse
-    for(int i = SBOX_COUNT - 1; i >= 0; i--) {
-        feistel_function(temp, sboxes[i], R);
-        for(int j = 0; j < BLOCK_SIZE / 2; j++) {
+    // Process 16 rounds of Feistel Network
+    for (int i = 0; i < SBOX_COUNT; ++i)
+    {
+        int sbox_index = decrypt ? SBOX_COUNT - 1 - i : i;
+        feistel_function(temp, sboxes[sbox_index], R);
+        for (int j = 0; j < BLOCK_SIZE / 2; ++j)
+        {
             temp[j] = L[j] ^ temp[j];
+            L[j] = R[j];
+            R[j] = temp[j];
         }
-        memcpy(L, R, BLOCK_SIZE / 2);
-        memcpy(R, temp, BLOCK_SIZE / 2);
     }
 
-    // Combine R and L
-    memcpy(plaintext_block, R, BLOCK_SIZE / 2);
-    memcpy(plaintext_block + BLOCK_SIZE / 2, L, BLOCK_SIZE / 2);
+    // Combine R and L into the output block
+    for (int i = 0; i < BLOCK_SIZE / 2; ++i)
+    {
+        output_block[i] = R[i];
+        output_block[i + BLOCK_SIZE / 2] = L[i];
+    }
 }
 
 
@@ -135,7 +122,7 @@ void edes_encrypt(uint8_t *ciphertext, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], ui
 
     // Encrypt each block using ECB mode
     for(int i = 0; i < padded_len; i += BLOCK_SIZE)
-        edes_encrypt_block(ciphertext + i, padded_data + i, sboxes);
+        edes_process_block(ciphertext + i, padded_data + i, sboxes, 0);
 }
 
 
@@ -144,7 +131,7 @@ int edes_decrypt(uint8_t *plaintext, uint8_t sboxes[SBOX_COUNT][SBOX_SIZE], uint
 
     // Decrypt each block using ECB mode
     for(int i = 0; i < ciphertext_len; i += BLOCK_SIZE)
-        edes_decrypt_block(unpadded_data + i, ciphertext + i, sboxes);
+        edes_process_block(unpadded_data + i, ciphertext + i, sboxes, 1);
 
     return pkcs7_unpad(plaintext, unpadded_data, ciphertext_len);
 }
